@@ -4,6 +4,7 @@ const fileupload = require('express-fileupload');
 const path = require('path');
 const fs=require('fs');
 const mysql2 =require('mysql2'); 
+const bcrypt = require ('bcrypt')
 const bodyParser = require('body-parser');
 //conexao-----------------------------------------------------------
 const conexao = mysql2.createConnection({
@@ -21,6 +22,7 @@ index.use(session({
     resave: false,
     saveUninitialized: false
 }));
+
 index.use(bodyParser.urlencoded({extended:true}));
 //validacao de login--------------------------------------------------------
 function verificaLogin(req, res, next) {
@@ -67,10 +69,9 @@ index.post('/login', (req, res) => {
     //console.log('Login:', login);
     //console.log('Senha:', password);
 
-    const sql = 'SELECT * FROM login WHERE login = ? AND senha = ?';
+    const sql = 'SELECT * FROM login WHERE login = ?';
 
-    conexao.query(sql, [login, password], (erro, retorno) => {
-
+    conexao.query(sql, [login], async (erro, retorno) => {
         if (erro) {
             console.error(erro);
             return res.send('Erro no banco');
@@ -79,10 +80,11 @@ index.post('/login', (req, res) => {
         if (retorno.length === 0) {
             return res.send('Login ou senha inválidos');
         }
+            const senhaOk = await bcrypt.compare(password, retorno[0].senha);
+            if (!senhaOk) return res.send('Senha inválida');
 
-        // LOGIN OK → cria sessão
-        req.session.usuario = retorno[0].login;
-        res.redirect('/');
+            req.session.usuario = retorno[0].login;
+            res.redirect('/');
     });
 });
 
@@ -95,16 +97,16 @@ index.post('/cadastrar', verificaLogin, (req, res) => {
     let nome = req.body.nome;
     let valor = req.body.valor;
     let imagem = req.files.imagem.name;
-    let sql = `INSERT INTO produtos(nome, valor, imagem) VALUES('${nome}', ${valor},'${imagem}')`;
+    let sql = `INSERT INTO produtos(nome, valor, imagem) VALUES(?,?,?)`;
 
     //executar comando sql 
-conexao.query(sql,function(erro,retorno){ 
-    if(erro)throw erro;
-     req.files.imagem.mv(__dirname+'/public/img/'+req.files.imagem.name);
-      console.log(retorno);
-       });
-//mandando de volta para a rota principal
-    res.redirect('/');
+conexao.query(sql,[nome,valor,imagem],function(erro,retorno){ 
+        if(erro)throw erro;
+        req.files.imagem.mv(__dirname+'/public/img/'+imagem);
+        console.log(retorno);
+        });
+    //mandando de volta para a rota principal
+        res.redirect('/');
 });
 //rota de deletar produtos
 index.post('/deletar/:codigo/:imagem', verificaLogin, function(req,res){
