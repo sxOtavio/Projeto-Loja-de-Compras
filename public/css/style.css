@@ -1,0 +1,41 @@
+*{box-sizing: border-box;}
+div{background-color: rgb(170, 170, 170);
+border-radius: 20px;
+margin: 2px;
+padding: 3px;
+display: flex;
+justify-content: center;
+}
+.empresa{
+    display: block;
+    text-align: center;
+}
+div input{
+    padding: 3px;
+    margin: 10px;
+    position:static;
+    text-align: center;
+}
+.sistema{
+display: flex;
+flex-wrap: wrap; /* Faz os itens pularem para a linha de baixo se não couberem */
+gap: 15px;      /* Espaço entre os produtos */
+padding: 20px
+  
+}
+.lista{
+    display: grid;
+    text-align: center;
+}
+div img{
+    width: 200px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center
+    
+}
+div p {
+    background-color: rgb(185, 185, 185);
+    border-radius: 10px;
+}
+div input{ border-radius: 10px;}

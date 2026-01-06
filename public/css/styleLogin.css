@@ -1,0 +1,26 @@
+.janela{ 
+    display: block;
+    text-align: center;
+    justify-content: center;
+    background-color: grey;
+    border-radius: 10px;
+    margin-left: 25%;
+    margin-top: 5%;
+    height: 400px;
+    width: 700px;
+    padding: 5px;
+}
+.saudacao{
+    border-radius: 10px;
+    background-color: rgb(170, 169, 169);
+    padding: 2px;
+    margin: 5px;
+
+}
+.loggin{
+    display: flexbox;
+    padding: 30px;
+}
+.links{
+padding: 20px;
+}
