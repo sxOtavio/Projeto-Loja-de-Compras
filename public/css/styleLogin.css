@@ -1,26 +1,115 @@
-.janela{ 
-    display: block;
-    text-align: center;
-    justify-content: center;
-    background-color: grey;
-    border-radius: 10px;
-    margin-left: 25%;
-    margin-top: 5%;
-    height: 400px;
-    width: 700px;
-    padding: 5px;
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
-.saudacao{
-    border-radius: 10px;
-    background-color: rgb(170, 169, 169);
-    padding: 2px;
-    margin: 5px;
 
+/* BODY */
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #00c3ff, #0072ff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, Helvetica, sans-serif;
 }
-.loggin{
-    display: flexbox;
-    padding: 30px;
+
+/* TÍTULO SUPERIOR */
+body > .saudacao {
+    position: absolute;
+    top: 20px;
+    color: white;
 }
-.links{
-padding: 20px;
+
+/* JANELA DE LOGIN */
+.janela {
+    background: white;
+    width: 380px;
+    padding: 30px 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+/* SAUDAÇÕES */
+.saudacao {
+    margin-bottom: 15px;
+}
+
+.saudacao h1 {
+    font-size: 26px;
+    margin-bottom: 5px;
+}
+
+.saudacao h2 {
+    font-size: 18px;
+    color: #555;
+}
+
+.saudacao h4 {
+    font-size: 14px;
+    color: #777;
+}
+
+/* FORM */
+form {
+    margin-top: 20px;
+}
+
+form input[type="text"],
+form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+form input[type="text"]:focus,
+form input[type="password"]:focus {
+    border-color: #0072ff;
+    outline: none;
+}
+
+/* BOTÃO LOGIN */
+form input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #0072ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+form input[type="submit"]:hover {
+    background-color: #0059c1;
+}
+
+/* LINKS */
+.janela a {
+    text-decoration: none;
+    color: #0072ff;
+    font-size: 14px;
+}
+
+.janela a:hover {
+    text-decoration: underline;
+}
+
+/* LINKS SOCIAIS */
+.links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* RESPONSIVO */
+@media (max-width: 480px) {
+    .janela {
+        width: 90%;
+    }
 }

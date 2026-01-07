@@ -47,20 +47,42 @@ index.use(fileupload({
 // body parsers ------------------------------------------------------------------
 index.use(express.urlencoded({ extended: true }));
 index.use(express.json());
+//ROTA PRINCIPAL-------------------------------------------------------
+index.get('/',(req,res)=>{
+     let sql= 'SELECT * FROM produtos';
+   //executar o comando ssql
+   conexao.query(sql,function(erro, retorno){
+    res.render('indexPrincipal', {produtos:retorno});
+   });
+    
+    //res.render('indexPrincipal');
+    });
 
-// ROTA PRINCIPAL ---------------------------------------------------------------
-index.get('/', verificaLogin, (req, res) => {
+//ROTA DE PRODUTOS-----------------------------------------------------
+index.get('/produtos',(req,res)=>{
+    
+       let sql= 'SELECT * FROM produtos';
+   //executar o comando ssql
+   conexao.query(sql,function(erro, retorno){
+    res.render('indexProdutos', {produtos:retorno});
+   });
+    
+   // res.render('indexProdutos');
+});
+
+// ROTA DE CADASTRO ---------------------------------------------------------------
+index.get('/cadastro', verificaLogin, (req, res) => {
    // res.render('index');
    //SQL
    let sql= 'SELECT * FROM produtos';
    //executar o comando ssql
    conexao.query(sql,function(erro, retorno){
-    res.render('index', {produtos:retorno});
+    res.render('indexCadastro', {produtos:retorno});
    });
 });
 
 
-// LOGIN---------------------------------------------------------------------------
+// ROTA DE LOGIN---------------------------------------------------------------------------
 index.get('/login', (req, res) => {res.render('indexLogin');});
 index.post('/login', (req, res) => {
 
@@ -84,29 +106,31 @@ index.post('/login', (req, res) => {
             if (!senhaOk) return res.send('Senha inválida');
 
             req.session.usuario = retorno[0].login;
-            res.redirect('/');
+            res.redirect('/cadastro');
     });
 });
 
-// cadastro-------------------------------------------------------------
+//POST DE CADASTRO-------------------------------------------------------------
 index.post('/cadastrar', verificaLogin, (req, res) => {
     console.log('BODY:', req.body);
     console.log('FILES:', req.files);
    // req.files.imagem.mv(__dirname+'/public/img/'+req.files.imagem.name);
     //OBTER OS DADOS PARA CADASTRO 
     let nome = req.body.nome;
+    let marca = req.body.marca;
+    let armazenamento = req.body.armazenamento;
     let valor = req.body.valor;
     let imagem = req.files.imagem.name;
-    let sql = `INSERT INTO produtos(nome, valor, imagem) VALUES(?,?,?)`;
+    let sql = `INSERT INTO produtos(nome, marca, armazenamento, valor, imagem) VALUES(?,?,?,?,?)`;
 
     //executar comando sql 
-conexao.query(sql,[nome,valor,imagem],function(erro,retorno){ 
+conexao.query(sql,[nome,marca,armazenamento,valor,imagem],function(erro,retorno){ 
         if(erro)throw erro;
         req.files.imagem.mv(__dirname+'/public/img/'+imagem);
         console.log(retorno);
         });
     //mandando de volta para a rota principal
-        res.redirect('/');
+        res.redirect('/cadastro');
 });
 //rota de deletar produtos
 index.post('/deletar/:codigo/:imagem', verificaLogin, function(req,res){
@@ -127,7 +151,7 @@ index.post('/deletar/:codigo/:imagem', verificaLogin, function(req,res){
                 console.log('Imagem removida com sucesso');
             }
 
-            res.redirect('/');
+            res.redirect('/cadastro');
         });
     });
 });

@@ -1,41 +1,149 @@
-*{box-sizing: border-box;}
-div{background-color: rgb(170, 170, 170);
-border-radius: 20px;
-margin: 2px;
-padding: 3px;
-display: flex;
-justify-content: center;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
-.empresa{
-    display: block;
+
+/* BODY */
+body.body {
+    background-color: #f2f2f2;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* TOPO / EMPRESA */
+.empresa {
+    background-color: #111;
+    color: white;
+    padding: 20px;
     text-align: center;
+    margin-bottom: 30px;
 }
-div input{
-    padding: 3px;
-    margin: 10px;
-    position:static;
-    text-align: center;
+
+.empresa h2 {
+    margin-bottom: 5px;
 }
-.sistema{
-display: flex;
-flex-wrap: wrap; /* Faz os itens pularem para a linha de baixo se não couberem */
-gap: 15px;      /* Espaço entre os produtos */
-padding: 20px
-  
+
+.empresa h4 {
+    font-weight: normal;
+    color: #ccc;
 }
-.lista{
-    display: grid;
-    text-align: center;
-}
-div img{
-    width: 200px;
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center
-    
-}
-div p {
-    background-color: rgb(185, 185, 185);
+
+/* FORMULÁRIO */
+form {
+    background: white;
+    max-width: 500px;
+    padding: 30px;
+    margin: 0 auto 40px auto;
     border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
-div input{ border-radius: 10px;}
+.filtro-item{
+    padding: 5px;
+    text-align: center;
+}
+form input[type="text"],
+form input[type="number"],
+form input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.botaoForm {
+    width: 50%;
+    padding: 10px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+form button h6 {
+    margin: 0;
+    font-size: 14px;
+}
+
+form button:hover {
+    background-color: #0059c1;
+}
+
+/* SISTEMA / LISTAGEM */
+.sistema {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    justify-content: center;
+}
+
+/* CARD DO PRODUTO */
+.lista {
+    background: white;
+    width: 240px;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+}
+
+.lista:hover {
+    transform: scale(1.03);
+}
+
+/* IMAGEM */
+.lista img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* TEXTO */
+.lista p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.lista p:last-of-type {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* BOTÕES */
+.lista input[type="submit"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: none;
+    border-radius: 5px;
+    background-color: #f0ad4e; /* bootstrap warning */
+    color: white;
+    cursor: pointer;
+}
+
+.lista input[type="submit"]:hover {
+    background-color: #ec971f;
+}
+
+.lista form button {
+    width: 70%;
+    padding: 10px;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .sistema {
+        padding: 10px;
+    }
+
+    .lista {
+        width: 100%;
+        max-width: 300px;
+    }
+}
