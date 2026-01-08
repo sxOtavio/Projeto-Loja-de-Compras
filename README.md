@@ -1,0 +1,1 @@
+Site com o objetivo de testar conhecimentos de javaScript com MySQL. Expansivamente venho aplicando outras tecnologias e aprimorando a fim de aprendizado e aprimoramento como login com bycrpt entre outros.
