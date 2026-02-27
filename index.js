@@ -9,7 +9,7 @@ const bodyParser = require('body-parser');
 const app = express();
 module.exports = app;
 //conexao-----------------------------------------------------------
-const connection = mysql.createConnection({
+const connection = mysql2.createConnection({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
@@ -53,7 +53,7 @@ index.use(express.json());
 index.get('/',(req,res)=>{
      let sql= 'SELECT * FROM produtos';
    //executar o comando ssql
-   conexao.query(sql,function(erro, retorno){
+   connection.query(sql,function(erro, retorno){
     res.render('indexPrincipal', {produtos:retorno});
    });
     
@@ -65,7 +65,7 @@ index.get('/produtos',(req,res)=>{
     
        let sql= 'SELECT * FROM produtos';
    //executar o comando ssql
-   conexao.query(sql,function(erro, retorno){
+   connection.query(sql,function(erro, retorno){
     res.render('indexProdutos', {produtos:retorno});
    });
     
@@ -78,7 +78,7 @@ index.get('/cadastro', verificaLogin, (req, res) => {
    //SQL
    let sql= 'SELECT * FROM produtos';
    //executar o comando ssql
-   conexao.query(sql,function(erro, retorno){
+   connection.query(sql,function(erro, retorno){
     res.render('indexCadastro', {produtos:retorno});
    });
 });
@@ -95,7 +95,7 @@ index.post('/login', (req, res) => {
 
     const sql = 'SELECT * FROM login WHERE login = ?';
 
-    conexao.query(sql, [login], async (erro, retorno) => {
+   connection.query(sql, [login], async (erro, retorno) => {
         if (erro) {
             console.error(erro);
             return res.send('Erro no banco');
@@ -126,7 +126,7 @@ index.post('/cadastrar', verificaLogin, (req, res) => {
     let sql = `INSERT INTO produtos(nome, marca, armazenamento, valor, imagem) VALUES(?,?,?,?,?)`;
 
     //executar comando sql 
-conexao.query(sql,[nome,marca,armazenamento,valor,imagem],function(erro,retorno){ 
+connection.query(sql,[nome,marca,armazenamento,valor,imagem],function(erro,retorno){ 
         if(erro)throw erro;
         req.files.imagem.mv(__dirname+'/public/img/'+imagem);
         console.log(retorno);
@@ -140,7 +140,7 @@ index.post('/deletar/:codigo/:imagem', verificaLogin, function(req,res){
     const imagem = req.params.imagem;
     
     let sql = `DELETE FROM produtos WHERE codigo = ${codigo}`;
- conexao.query(sql,function(erro,retorno){
+ connection.query(sql,function(erro,retorno){
     if(erro)throw erro;
 
     const caminhoImagem = path.join(__dirname, 'public', 'img', imagem);

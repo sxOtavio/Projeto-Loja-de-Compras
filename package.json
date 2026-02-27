@@ -7,14 +7,14 @@
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
     "express-session": "^1.18.2",
-    "mysql2": "^3.16.0"
+    "mysql2": "^3.18.2"
   },
   "name": "projetocompras",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-  "start": "node index.js"
-},
+    "start": "node index.js"
+  },
   "author": "Otavio",
   "license": "ISC",
   "description": ""
