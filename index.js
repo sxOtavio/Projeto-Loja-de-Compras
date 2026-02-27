@@ -6,7 +6,7 @@ const fs=require('fs');
 const mysql2 =require('mysql2'); 
 const bcrypt = require ('bcrypt')
 const bodyParser = require('body-parser');
-const app = express();
+
 module.exports = app;
 //conexao-----------------------------------------------------------
 const connection = mysql2.createConnection({
@@ -164,3 +164,5 @@ app.listen(PORT, () => {
 });
 console.log(process.env.MYSQLHOST);
 console.log("HOST:", process.env.MYSQLHOST);
+console.log("MYSQLHOST:", process.env.MYSQLHOST);
+console.log("MYSQLUSER:", process.env.MYSQLUSER);
