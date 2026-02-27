@@ -163,3 +163,4 @@ app.listen(PORT, () => {
   console.log("Servidor rodando");
 });
 console.log(process.env.MYSQLHOST);
+console.log("HOST:", process.env.MYSQLHOST);
