@@ -166,3 +166,6 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+console.log("HOST:", process.env.MYSQLHOST);
+console.log("USER:", process.env.MYSQLUSER);
+console.log("PORT:", process.env.MYSQLPORT);
