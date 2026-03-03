@@ -19,14 +19,14 @@ const connection = mysql2.createConnection({
 });
 
 //Segredo---------------------------------------
-const index = express();
-index.use(session({
+const app = express();
+app.use(session({
     secret: 'sadnkccxxxxxxcla',
     resave: false,
     saveUninitialized: false
 }));
 
-index.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.urlencoded({extended:true}));
 //validacao de login--------------------------------------------------------
 function verificaLogin(req, res, next) {
     if (req.session.usuario) {
@@ -35,59 +35,59 @@ function verificaLogin(req, res, next) {
     res.redirect('/login'); // bloqueia acesso
 }
 // view engine--------------------------------------------------------------------
-index.set('view engine', 'ejs');
+app.set('view engine', 'ejs');
 
 
 // arquivos estáticos---
-index.use(express.static(path.join(__dirname, 'public')));
-index.use('/public/img',express.static('../public/img'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/public/img',express.static('../public/img'));
 
 // ⚠️ upload --------------------------------------------------------------------
-index.use(fileupload({
+app.use(fileupload({
     createParentPath: true
 }));
 
 // body parsers ------------------------------------------------------------------
-index.use(express.urlencoded({ extended: true }));
-index.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 //ROTA PRINCIPAL-------------------------------------------------------
-index.get('/',(req,res)=>{
+app.get('/',(req,res)=>{
      let sql= 'SELECT * FROM produtos';
    //executar o comando ssql
    connection.query(sql,function(erro, retorno){
-    res.render('indexPrincipal', {produtos:retorno});
+    res.render('appPrincipal', {produtos:retorno});
    });
     
-    //res.render('indexPrincipal');
+    //res.render('appPrincipal');
     });
 
 //ROTA DE PRODUTOS-----------------------------------------------------
-index.get('/produtos',(req,res)=>{
+app.get('/produtos',(req,res)=>{
     
        let sql= 'SELECT * FROM produtos';
    //executar o comando ssql
    connection.query(sql,function(erro, retorno){
-    res.render('indexProdutos', {produtos:retorno});
+    res.render('appProdutos', {produtos:retorno});
    });
     
-   // res.render('indexProdutos');
+   // res.render('appProdutos');
 });
 
 // ROTA DE CADASTRO ---------------------------------------------------------------
-index.get('/cadastro', verificaLogin, (req, res) => {
-   // res.render('index');
+app.get('/cadastro', verificaLogin, (req, res) => {
+   // res.render('app');
    //SQL
    let sql= 'SELECT * FROM produtos';
    //executar o comando ssql
    connection.query(sql,function(erro, retorno){
-    res.render('indexCadastro', {produtos:retorno});
+    res.render('appCadastro', {produtos:retorno});
    });
 });
 
 
 // ROTA DE LOGIN---------------------------------------------------------------------------
-index.get('/login', (req, res) => {res.render('indexLogin');});
-index.post('/login', (req, res) => {
+app.get('/login', (req, res) => {res.render('appLogin');});
+app.post('/login', (req, res) => {
 
     const { login, password } = req.body;
 
@@ -114,7 +114,7 @@ index.post('/login', (req, res) => {
 });
 
 //POST DE CADASTRO-------------------------------------------------------------
-index.post('/cadastrar', verificaLogin, (req, res) => {
+app.post('/cadastrar', verificaLogin, (req, res) => {
     console.log('BODY:', req.body);
     console.log('FILES:', req.files);
    // req.files.imagem.mv(__dirname+'/public/img/'+req.files.imagem.name);
@@ -136,7 +136,7 @@ connection.query(sql,[nome,marca,armazenamento,valor,imagem],function(erro,retor
         res.redirect('/cadastro');
 });
 //rota de deletar produtos
-index.post('/deletar/:codigo/:imagem', verificaLogin, function(req,res){
+app.post('/deletar/:codigo/:imagem', verificaLogin, function(req,res){
     const codigo = req.params.codigo;
     const imagem = req.params.imagem;
     
