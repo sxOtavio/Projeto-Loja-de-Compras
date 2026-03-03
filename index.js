@@ -5,35 +5,33 @@ const path = require('path');
 const fs = require('fs');
 const mysql2 = require('mysql2');
 const bcrypt = require('bcrypt');
-const bodyParser = require('body-parser');
 
 const app = express();
 
-// ================= CONEXÃO MYSQL =================
-const connection = mysql2.createConnection({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT
-});
+// ================= CONEXÃO MYSQL (RAILWAY CORRETO) =================
+const connection = mysql2.createConnection(process.env.DATABASE_URL);
 
 connection.connect((err) => {
   if (err) {
-    console.error("Erro ao conectar MySQL:", err);
+    console.error("❌ Erro ao conectar MySQL:", err);
   } else {
-    console.log("MySQL conectado 🚀");
+    console.log("✅ MySQL conectado 🚀");
   }
 });
 
-// ================= SESSÃO =================
+// ================= MIDDLEWARES =================
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.use(session({
-  secret: 'sadnkccxxxxxxcla',
+  secret: process.env.SESSION_SECRET || 'segredo_super_forte',
   resave: false,
   saveUninitialized: false
 }));
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(fileupload({
+  createParentPath: true
+}));
 
 // ================= VIEW ENGINE =================
 app.set('view engine', 'ejs');
@@ -42,20 +40,9 @@ app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/public/img', express.static(path.join(__dirname, 'public/img')));
 
-// ================= UPLOAD =================
-app.use(fileupload({
-  createParentPath: true
-}));
-
-// ================= BODY PARSER =================
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
 // ================= MIDDLEWARE LOGIN =================
 function verificaLogin(req, res, next) {
-  if (req.session.usuario) {
-    return next();
-  }
+  if (req.session.usuario) return next();
   res.redirect('/login');
 }
 
@@ -63,9 +50,7 @@ function verificaLogin(req, res, next) {
 
 // HOME
 app.get('/', (req, res) => {
-  const sql = 'SELECT * FROM produtos';
-
-  connection.query(sql, (erro, retorno) => {
+  connection.query('SELECT * FROM produtos', (erro, retorno) => {
     if (erro) return res.send("Erro no banco");
     res.render('appPrincipal', { produtos: retorno });
   });
@@ -73,9 +58,7 @@ app.get('/', (req, res) => {
 
 // PRODUTOS
 app.get('/produtos', (req, res) => {
-  const sql = 'SELECT * FROM produtos';
-
-  connection.query(sql, (erro, retorno) => {
+  connection.query('SELECT * FROM produtos', (erro, retorno) => {
     if (erro) return res.send("Erro no banco");
     res.render('appProdutos', { produtos: retorno });
   });
@@ -83,9 +66,7 @@ app.get('/produtos', (req, res) => {
 
 // CADASTRO
 app.get('/cadastro', verificaLogin, (req, res) => {
-  const sql = 'SELECT * FROM produtos';
-
-  connection.query(sql, (erro, retorno) => {
+  connection.query('SELECT * FROM produtos', (erro, retorno) => {
     if (erro) return res.send("Erro no banco");
     res.render('appCadastro', { produtos: retorno });
   });
@@ -99,73 +80,72 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const { login, password } = req.body;
 
-  const sql = 'SELECT * FROM login WHERE login = ?';
+  connection.query(
+    'SELECT * FROM login WHERE login = ?',
+    [login],
+    async (erro, retorno) => {
+      if (erro) return res.send('Erro no banco');
+      if (retorno.length === 0) return res.send('Login inválido');
 
-  connection.query(sql, [login], async (erro, retorno) => {
-    if (erro) return res.send('Erro no banco');
-    if (retorno.length === 0) return res.send('Login inválido');
+      const senhaOk = await bcrypt.compare(password, retorno[0].senha);
+      if (!senhaOk) return res.send('Senha inválida');
 
-    const senhaOk = await bcrypt.compare(password, retorno[0].senha);
-    if (!senhaOk) return res.send('Senha inválida');
-
-    req.session.usuario = retorno[0].login;
-    res.redirect('/cadastro');
-  });
+      req.session.usuario = retorno[0].login;
+      res.redirect('/cadastro');
+    }
+  );
 });
 
 // CADASTRAR PRODUTO
 app.post('/cadastrar', verificaLogin, (req, res) => {
-
   const { nome, marca, armazenamento, valor } = req.body;
+
+  if (!req.files || !req.files.imagem)
+    return res.send("Imagem obrigatória");
+
   const imagem = req.files.imagem.name;
 
-  const sql = `
-    INSERT INTO produtos(nome, marca, armazenamento, valor, imagem)
-    VALUES (?,?,?,?,?)
-  `;
-
   connection.query(
-    sql,
+    `INSERT INTO produtos(nome, marca, armazenamento, valor, imagem)
+     VALUES (?,?,?,?,?)`,
     [nome, marca, armazenamento, valor, imagem],
     (erro) => {
-      if (erro) throw erro;
+      if (erro) return res.send("Erro ao cadastrar");
 
       req.files.imagem.mv(
-        path.join(__dirname, 'public/img', imagem)
+        path.join(__dirname, 'public/img', imagem),
+        (err) => {
+          if (err) console.error("Erro ao salvar imagem:", err);
+          res.redirect('/cadastro');
+        }
       );
-
-      res.redirect('/cadastro');
     }
   );
 });
 
 // DELETAR PRODUTO
 app.post('/deletar/:codigo/:imagem', verificaLogin, (req, res) => {
-
   const { codigo, imagem } = req.params;
 
-  const sql = 'DELETE FROM produtos WHERE codigo = ?';
+  connection.query(
+    'DELETE FROM produtos WHERE codigo = ?',
+    [codigo],
+    (erro) => {
+      if (erro) return res.send("Erro ao deletar");
 
-  connection.query(sql, [codigo], (erro) => {
-    if (erro) throw erro;
+      const caminhoImagem = path.join(__dirname, 'public/img', imagem);
 
-    const caminhoImagem = path.join(__dirname, 'public/img', imagem);
-
-    fs.unlink(caminhoImagem, (err) => {
-      if (err) console.error('Erro ao remover imagem:', err.message);
-      res.redirect('/cadastro');
-    });
-  });
+      fs.unlink(caminhoImagem, (err) => {
+        if (err) console.error('Erro ao remover imagem:', err.message);
+        res.redirect('/cadastro');
+      });
+    }
+  );
 });
 
 // ================= SERVIDOR =================
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
-
-module.exports = app;
-console.log("HOST:", process.env.MYSQLHOST);
-console.log("USER:", process.env.MYSQLUSER);
-console.log("PORT:", process.env.MYSQLPORT);
