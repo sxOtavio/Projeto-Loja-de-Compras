@@ -166,3 +166,4 @@ console.log(process.env.MYSQLHOST);
 console.log("HOST:", process.env.MYSQLHOST);
 console.log("MYSQLHOST:", process.env.MYSQLHOST);
 console.log("MYSQLUSER:", process.env.MYSQLUSER);
+module.exports = app;
