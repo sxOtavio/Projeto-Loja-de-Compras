@@ -6,6 +6,7 @@ const fs=require('fs');
 const mysql2 =require('mysql2'); 
 const bcrypt = require ('bcrypt')
 const bodyParser = require('body-parser');
+const app = express(); 
 
 module.exports = app;
 //conexao-----------------------------------------------------------
