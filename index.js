@@ -8,14 +8,40 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 
-// ================= CONEXÃO MYSQL (RAILWAY CORRETO) =================
-const connection = mysql2.createConnection(process.env.DATABASE_URL);
+// ================= CONEXÃO MYSQL (RAILWAY SAFE) =================
 
-connection.connect((err) => {
+let connection;
+
+if (process.env.DATABASE_URL) {
+  console.log("🔗 Usando DATABASE_URL");
+  connection = mysql2.createPool(process.env.DATABASE_URL);
+} else {
+  console.log("🔗 Usando variáveis MYSQL separadas");
+
+  const dbConfig = {
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    port: Number(process.env.MYSQLPORT) || 3306
+  };
+
+  console.log("DB CONFIG:", dbConfig);
+
+  if (!dbConfig.host) {
+    console.error("❌ Variáveis de banco não carregaram.");
+    process.exit(1);
+  }
+
+  connection = mysql2.createPool(dbConfig);
+}
+
+connection.getConnection((err, conn) => {
   if (err) {
     console.error("❌ Erro ao conectar MySQL:", err);
   } else {
     console.log("✅ MySQL conectado 🚀");
+    conn.release();
   }
 });
 
