@@ -3,49 +3,29 @@ const session = require('express-session');
 const fileupload = require('express-fileupload');
 const path = require('path');
 const fs = require('fs');
-const mysql2 = require('mysql2');
+const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 
 const app = express();
 
-// ================= CONEXÃO MYSQL (RAILWAY SAFE) =================
+// ================= CONEXÃO POSTGRES (RENDER) =================
 
-let connection;
-
-if (process.env.DATABASE_URL) {
-  console.log("🔗 Usando DATABASE_URL");
-  connection = mysql2.createPool(process.env.DATABASE_URL);
-} else {
-  console.log("🔗 Usando variáveis MYSQL separadas");
-
-  const dbConfig = {
-    host: process.env.MYSQLHOST,
-    user: process.env.MYSQLUSER,
-    password: process.env.MYSQLPASSWORD,
-    database: process.env.MYSQLDATABASE,
-    port: Number(process.env.MYSQLPORT) || 3306
-  };
-
-  console.log("DB CONFIG:", dbConfig);
-
-  if (!dbConfig.host) {
-    console.error("❌ Variáveis de banco não carregaram.");
-    process.exit(1);
-  }
-
-  connection = mysql2.createPool(dbConfig);
-}
-
-connection.getConnection((err, conn) => {
-  if (err) {
-    console.error("❌ Erro ao conectar MySQL:", err);
-  } else {
-    console.log("✅ MySQL conectado 🚀");
-    conn.release();
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
   }
 });
 
+pool.connect()
+  .then(() => console.log("✅ PostgreSQL conectado 🚀"))
+  .catch(err => {
+    console.error("❌ Erro ao conectar PostgreSQL:", err);
+    process.exit(1);
+  });
+
 // ================= MIDDLEWARES =================
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -60,13 +40,16 @@ app.use(fileupload({
 }));
 
 // ================= VIEW ENGINE =================
+
 app.set('view engine', 'ejs');
 
 // ================= ARQUIVOS ESTÁTICOS =================
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/public/img', express.static(path.join(__dirname, 'public/img')));
 
-// ================= MIDDLEWARE LOGIN =================
+// ================= LOGIN MIDDLEWARE =================
+
 function verificaLogin(req, res, next) {
   if (req.session.usuario) return next();
   res.redirect('/login');
@@ -75,27 +58,33 @@ function verificaLogin(req, res, next) {
 // ================= ROTAS =================
 
 // HOME
-app.get('/', (req, res) => {
-  connection.query('SELECT * FROM produtos', (erro, retorno) => {
-    if (erro) return res.send("Erro no banco");
-    res.render('appPrincipal', { produtos: retorno });
-  });
+app.get('/', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM produtos');
+    res.render('appPrincipal', { produtos: result.rows });
+  } catch {
+    res.send("Erro no banco");
+  }
 });
 
 // PRODUTOS
-app.get('/produtos', (req, res) => {
-  connection.query('SELECT * FROM produtos', (erro, retorno) => {
-    if (erro) return res.send("Erro no banco");
-    res.render('appProdutos', { produtos: retorno });
-  });
+app.get('/produtos', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM produtos');
+    res.render('appProdutos', { produtos: result.rows });
+  } catch {
+    res.send("Erro no banco");
+  }
 });
 
 // CADASTRO
-app.get('/cadastro', verificaLogin, (req, res) => {
-  connection.query('SELECT * FROM produtos', (erro, retorno) => {
-    if (erro) return res.send("Erro no banco");
-    res.render('appCadastro', { produtos: retorno });
-  });
+app.get('/cadastro', verificaLogin, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM produtos');
+    res.render('appCadastro', { produtos: result.rows });
+  } catch {
+    res.send("Erro no banco");
+  }
 });
 
 // LOGIN
@@ -103,27 +92,35 @@ app.get('/login', (req, res) => {
   res.render('appLogin');
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { login, password } = req.body;
 
-  connection.query(
-    'SELECT * FROM login WHERE login = ?',
-    [login],
-    async (erro, retorno) => {
-      if (erro) return res.send('Erro no banco');
-      if (retorno.length === 0) return res.send('Login inválido');
+  try {
+    const result = await pool.query(
+      'SELECT * FROM login WHERE login = $1',
+      [login]
+    );
 
-      const senhaOk = await bcrypt.compare(password, retorno[0].senha);
-      if (!senhaOk) return res.send('Senha inválida');
+    if (result.rows.length === 0)
+      return res.send('Login inválido');
 
-      req.session.usuario = retorno[0].login;
-      res.redirect('/cadastro');
-    }
-  );
+    const usuario = result.rows[0];
+
+    const senhaOk = await bcrypt.compare(password, usuario.senha);
+
+    if (!senhaOk)
+      return res.send('Senha inválida');
+
+    req.session.usuario = usuario.login;
+    res.redirect('/cadastro');
+
+  } catch {
+    res.send('Erro no banco');
+  }
 });
 
 // CADASTRAR PRODUTO
-app.post('/cadastrar', verificaLogin, (req, res) => {
+app.post('/cadastrar', verificaLogin, async (req, res) => {
   const { nome, marca, armazenamento, valor } = req.body;
 
   if (!req.files || !req.files.imagem)
@@ -131,45 +128,45 @@ app.post('/cadastrar', verificaLogin, (req, res) => {
 
   const imagem = req.files.imagem.name;
 
-  connection.query(
-    `INSERT INTO produtos(nome, marca, armazenamento, valor, imagem)
-     VALUES (?,?,?,?,?)`,
-    [nome, marca, armazenamento, valor, imagem],
-    (erro) => {
-      if (erro) return res.send("Erro ao cadastrar");
+  try {
+    await pool.query(
+      `INSERT INTO produtos(nome, marca, armazenamento, valor, imagem)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [nome, marca, armazenamento, valor, imagem]
+    );
 
-      req.files.imagem.mv(
-        path.join(__dirname, 'public/img', imagem),
-        (err) => {
-          if (err) console.error("Erro ao salvar imagem:", err);
-          res.redirect('/cadastro');
-        }
-      );
-    }
-  );
+    req.files.imagem.mv(
+      path.join(__dirname, 'public/img', imagem),
+      () => res.redirect('/cadastro')
+    );
+
+  } catch {
+    res.send("Erro ao cadastrar");
+  }
 });
 
-// DELETAR PRODUTO
-app.post('/deletar/:codigo/:imagem', verificaLogin, (req, res) => {
+// DELETAR
+app.post('/deletar/:codigo/:imagem', verificaLogin, async (req, res) => {
   const { codigo, imagem } = req.params;
 
-  connection.query(
-    'DELETE FROM produtos WHERE codigo = ?',
-    [codigo],
-    (erro) => {
-      if (erro) return res.send("Erro ao deletar");
+  try {
+    await pool.query(
+      'DELETE FROM produtos WHERE codigo = $1',
+      [codigo]
+    );
 
-      const caminhoImagem = path.join(__dirname, 'public/img', imagem);
+    fs.unlink(
+      path.join(__dirname, 'public/img', imagem),
+      () => res.redirect('/cadastro')
+    );
 
-      fs.unlink(caminhoImagem, (err) => {
-        if (err) console.error('Erro ao remover imagem:', err.message);
-        res.redirect('/cadastro');
-      });
-    }
-  );
+  } catch {
+    res.send("Erro ao deletar");
+  }
 });
 
 // ================= SERVIDOR =================
+
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
