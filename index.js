@@ -3,12 +3,12 @@ const session = require('express-session');
 const fileupload = require('express-fileupload');
 const path = require('path');
 const fs = require('fs');
-const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const { Pool } = require('pg');
 
 const app = express();
 
-// ================= CONEXÃO POSTGRES (RENDER) =================
+// ================= CONEXÃO POSTGRESQL (RENDER) =================
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -19,10 +19,7 @@ const pool = new Pool({
 
 pool.connect()
   .then(() => console.log("✅ PostgreSQL conectado 🚀"))
-  .catch(err => {
-    console.error("❌ Erro ao conectar PostgreSQL:", err);
-    process.exit(1);
-  });
+  .catch(err => console.error("❌ Erro ao conectar PostgreSQL:", err));
 
 // ================= MIDDLEWARES =================
 
@@ -48,7 +45,7 @@ app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/public/img', express.static(path.join(__dirname, 'public/img')));
 
-// ================= LOGIN MIDDLEWARE =================
+// ================= MIDDLEWARE LOGIN =================
 
 function verificaLogin(req, res, next) {
   if (req.session.usuario) return next();
@@ -60,8 +57,8 @@ function verificaLogin(req, res, next) {
 // HOME
 app.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM produtos');
-    res.render('appPrincipal', { produtos: result.rows });
+    const resultado = await pool.query('SELECT * FROM produtos');
+    res.render('appPrincipal', { produtos: resultado.rows });
   } catch {
     res.send("Erro no banco");
   }
@@ -70,8 +67,8 @@ app.get('/', async (req, res) => {
 // PRODUTOS
 app.get('/produtos', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM produtos');
-    res.render('appProdutos', { produtos: result.rows });
+    const resultado = await pool.query('SELECT * FROM produtos');
+    res.render('appProdutos', { produtos: resultado.rows });
   } catch {
     res.send("Erro no banco");
   }
@@ -80,8 +77,8 @@ app.get('/produtos', async (req, res) => {
 // CADASTRO
 app.get('/cadastro', verificaLogin, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM produtos');
-    res.render('appCadastro', { produtos: result.rows });
+    const resultado = await pool.query('SELECT * FROM produtos');
+    res.render('appCadastro', { produtos: resultado.rows });
   } catch {
     res.send("Erro no banco");
   }
@@ -96,15 +93,15 @@ app.post('/login', async (req, res) => {
   const { login, password } = req.body;
 
   try {
-    const result = await pool.query(
+    const resultado = await pool.query(
       'SELECT * FROM login WHERE login = $1',
       [login]
     );
 
-    if (result.rows.length === 0)
+    if (resultado.rows.length === 0)
       return res.send('Login inválido');
 
-    const usuario = result.rows[0];
+    const usuario = resultado.rows[0];
 
     const senhaOk = await bcrypt.compare(password, usuario.senha);
 
@@ -114,7 +111,8 @@ app.post('/login', async (req, res) => {
     req.session.usuario = usuario.login;
     res.redirect('/cadastro');
 
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.send('Erro no banco');
   }
 });
@@ -137,15 +135,19 @@ app.post('/cadastrar', verificaLogin, async (req, res) => {
 
     req.files.imagem.mv(
       path.join(__dirname, 'public/img', imagem),
-      () => res.redirect('/cadastro')
+      (err) => {
+        if (err) console.error(err);
+        res.redirect('/cadastro');
+      }
     );
 
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.send("Erro ao cadastrar");
   }
 });
 
-// DELETAR
+// DELETAR PRODUTO
 app.post('/deletar/:codigo/:imagem', verificaLogin, async (req, res) => {
   const { codigo, imagem } = req.params;
 
@@ -155,19 +157,22 @@ app.post('/deletar/:codigo/:imagem', verificaLogin, async (req, res) => {
       [codigo]
     );
 
-    fs.unlink(
-      path.join(__dirname, 'public/img', imagem),
-      () => res.redirect('/cadastro')
-    );
+    const caminhoImagem = path.join(__dirname, 'public/img', imagem);
 
-  } catch {
+    fs.unlink(caminhoImagem, (err) => {
+      if (err) console.error('Erro ao remover imagem:', err.message);
+      res.redirect('/cadastro');
+    });
+
+  } catch (err) {
+    console.error(err);
     res.send("Erro ao deletar");
   }
 });
 
 // ================= SERVIDOR =================
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
