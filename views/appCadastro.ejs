@@ -59,7 +59,7 @@
             <p>Nome: <%=produto.nome%></p>
             <p>Marca : <%=produto.marca%></p>
             <p>Armazenamento : <%=produto.armazenamento%></p>
-            <p>Valor= R$ <%=produto.valor.toFixed(2)%></p>
+            <p>Valor= R$ <%=produto.valor%></p>
     <form class="botaoForm" action="/deletar/<%= produto.codigo %>/<%= produto.imagem %>" method="POST" style="display:inline;">
         <button type="submit" class="btn btn-danger">Alterar</button>
     </form>
