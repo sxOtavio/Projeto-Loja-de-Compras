@@ -18,8 +18,8 @@ const pool = new Pool({
 });
 
 pool.connect()
-  .then(() => console.log("✅ PostgreSQL conectado 🚀"))
-  .catch(err => console.error("❌ Erro ao conectar PostgreSQL:", err));
+  .then(() => console.log(" PostgreSQL conectado com sucesso!"))
+  .catch(err => console.error(" Erro ao conectar PostgreSQL:", err));
 
 // ================= MIDDLEWARES =================
 
@@ -41,8 +41,7 @@ app.use(fileupload({
 app.set('view engine', 'ejs');
 
 // ================= ARQUIVOS ESTÁTICOS =================
-
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/public/img', express.static(path.join(__dirname, 'public/img')));
 
 // ================= MIDDLEWARE LOGIN =================
