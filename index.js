@@ -41,8 +41,8 @@ app.use(fileupload({
 app.set('view engine', 'ejs');
 
 // ================= ARQUIVOS ESTÁTICOS =================
-app.use('/public', express.static(path.join(__dirname, 'public')));
-app.use('/public/img', express.static(path.join(__dirname, 'public/img')));
+app.set('trust proxy', true);
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ================= MIDDLEWARE LOGIN =================
 

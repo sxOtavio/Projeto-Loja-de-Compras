@@ -12,7 +12,7 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
 
-    <link rel="stylesheet" href="/public/css/styleProdutos.css">
+    <link rel="stylesheet" href="/css/styleProdutos.css">
 </head>
 <body>
 
@@ -81,7 +81,7 @@
            <% produtos.forEach(function(produto){ %>
 
             <div class="card-produto">
-               <img src="../img/<%= produto.imagem %>" alt="Telefone">
+               <img src="/img/<%= produto.imagem %>" alt="Telefone">
                 <h3><%=produto.nome%></h3>
                 <p>Marca: <%=produto.marca%></p>
                 <p>Memoria interna: <%=produto.armazenamento%></p>

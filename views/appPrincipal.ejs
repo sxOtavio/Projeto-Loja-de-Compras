@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>📱 MenesPhones</title>
-    <link rel="stylesheet" href="/public/css/stylePrincipal.css">
+    <link rel="stylesheet" href="/css/stylePrincipal.css">
 </head>
 <body>
 
@@ -29,7 +29,7 @@
                 
            <% produtos.forEach(function(produto){ %>
         <div class="card">
-            <img src="../img/<%= produto.imagem %>" alt="Telefone">
+            <img src="/img/<%= produto.imagem %>" alt="Telefone">
             <h3><%=produto.nome%></h3>
             <p>Marca: <%=produto.marca%></p>
             <p>Memoria interna: <%=produto.armazenamento%></p>
